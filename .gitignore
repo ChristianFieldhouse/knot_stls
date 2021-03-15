@@ -1,0 +1,5 @@
+
+iterations/
+*.stl
+
+__pycache__
