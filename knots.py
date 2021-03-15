@@ -138,7 +138,7 @@ def forces(points, elasticity=0.1, repulsion=2/len(points), far=30, close = 0.1/
     ])
 
 
-iters = 10
+iters = 100
 
 for i in range(iters):
     f = forces(points)
