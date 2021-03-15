@@ -128,7 +128,7 @@ def forces(points, elasticity=0.1, repulsion=2/len(points), far=30, close = 0.1/
             elastic_fn(points[i-2], points[i-1], points[i], points[(i+1) % len(points)], points[(i+2) % len(points)], close)
         ) + (
             np.array([0, 0, 0]) if justdamp else (
-                repulsion * np.sum(
+                repulsion * sum(
                     repulse_fn(points[i] - q, rad=1.5)
                     for q in get_far_points(points, i, far)
                 )
@@ -138,9 +138,9 @@ def forces(points, elasticity=0.1, repulsion=2/len(points), far=30, close = 0.1/
     ])
 
 
-iters = 100
+iters = 10
 
-for i in range(100):
+for i in range(iters):
     f = forces(points)
     #print(f)
     points = points + f
@@ -159,7 +159,8 @@ for i in range(100):
             255,
         ]) 
 
-    Image.fromarray(im.astype("uint8")).save(f"iterations/{i}.png")
+    if i % 5 == 0:
+        Image.fromarray(im.astype("uint8")).save(f"iterations/{i}.png")
 
 dampiters = 20
 
