@@ -95,7 +95,7 @@ knots0 = {
     "7_5": knot_path("knot_sketches/7_5.png")
 }
 
-myname = "6_1"
+myname = "7_5"
 myknot = knots0[myname]
 
 subsample = 5
@@ -191,7 +191,9 @@ for i in range(iters):
             255,
             int((255 / (ma - mi)) * (p[2] - mi)),
             255,
-        ]) 
+        ])
+    
+    print(ma - mi)
 
     if i % 5 == 0:
         Image.fromarray(im.astype("uint8")).save(f"iterations/{i}.png")
@@ -219,5 +221,9 @@ for i in range(dampiters):
         ]) 
 
     Image.fromarray(im.astype("uint8")).save(f"iterations/{iters}_{i}.png")
+
+points = points * 10
+mi = np.min(points)
+ma = np.max(points)
 
 save_sdl(tube(points, k=20, r=(ma-mi)/15), name=myname)
