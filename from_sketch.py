@@ -9,7 +9,6 @@ def knot_path(file_name, make_ims=False):
 
     start = np.argmax(im[:, :, 3]) # 2d coord of a point on the knot
     y0, x0 = start//im.shape[1], start % im.shape[1]
-    #print((y0, x0))
     points = [(y0, x0)]
 
     r_max = 4 # radius to search for next point
@@ -37,7 +36,7 @@ def knot_path(file_name, make_ims=False):
 
     is_on_top = True #stores whether on top / black
 
-    while len(points) < 20 or ((points[-1][0] - y0)**2 + (points[-1][1] - x0)**2 > r_max):
+    while len(points) < 20 or ((points[-1][0] - y0)**2 + (points[-1][1] - x0)**2 > 2 * r_max):
         #print(points)
         y, x = points[-1]
         
