@@ -5,113 +5,31 @@ import itertools
 
 from write_tube import tube, save_sdl
 from from_sketch import knot_path
-from webscraped_knot_data import eights, nines, tens
+from webscraped_knot_data import leq_sevens, eights, nines, tens
+from legacy_knot_specifications import legacy_knots0
+
+knot_counts = [1, 0, 0, 1, 1, 2, 3, 7]
+def name_from_index(i):
+    c = i + 1
+    for crossing in range(8):
+        for index in range(1, knot_counts[crossing] + 1):
+            c -= 1
+            if c == 0:
+                return f"{crossing}_{index}"
+            
 
 # initial specification of knots
-knots0 = {**{
-        "test": np.array([
-            (0, 0, 0),
-            (3, 0, 0),
-            (3, 2, 0),
-            (1.6, 2, 0),
-            (1.6, 1, 0),
-            (1.4, 1, 0),
-            (1.4, 2, 0),
-            (0, 2, 0),
-        
-        ]),
-        "3_1": np.array([
-            (-1, 2, 0),
-            (1, 2, 1),
-            (0.5, 0, 1),
-            (0.5, 0, 0),
-            (0, -1, 0),
-            (-2, 0, 1),
-            (0, 0.5, 1),
-            (0, 0.5, 0),
-            (1, 1, 0),
-            (2, 0, 0),
-            (1, -1, 1),
-            (0, 0, 1),
-            (0, 0, 0),
-        ]),
-        "4_1": np.array([
-            (1, 3, 0),
-            (-1, 3, 1),
-            (-1, 1, 1),
-            (-1, 1, 0),
-            (1, 0, 0),
-            (1, 0, 1),
-            (1, -1, 1),
-            (-2, -1, 1),
-            (-2, 2, 0.5),
-            (2, 2, 0.5),
-            (2, -1, 0),
-            (-1, -1, 0),
-            (-1, -1, 1),
-            (1, 1, 1),
-            (1, 1, 0),
-        ]),
-        "5_1": knot_path("knot_sketches/5_1.png") * 2,
-        "5_2": knot_path("knot_sketches/5_2.png") * 2,
-        "5_2_old": np.array([ # this one is more symmetric so keeps its twist
-            (1, 4, 0),
-            (-1, 4, 1),
-            (-1, 2, 1),
-            (-1, 2, 0),
-            (1, 1, 0),
-            (1, 1, 1),
-            (-1, 0, 1),
-            (-1, 0, 0),
-            (-1, -1, 0),
-            (2, -1, 0),
-            (2, 3, 0.5),
-            (-2, 3, 0.5),
-            (-2, -1, 1),
-            (1, -1, 1),
-            (1, -1, 0),
-            (-1, 1, 0),
-            (-1, 1, 1),
-            (1, 2, 1),
-            (1, 2, 0),
-        ]),
-        "6_1": np.array([
-            (1, -1, 0),
-            (-0.5, -0.5, 0),
-            (-0.5, -0.5, 1),
-            (-3, 0, 1),
-            (-3, 0, 0),
-            (0, 0, 0),
-            (0, 0, 2),
-            (3, 0, 2),
-            (3, 0, 1),
-            (-1, -1, 1),
-            (-1, -1, 0),
-            (1, -2, 0),
-            (2, -2, 0),
-            (2, -2, 1.5),
-            (2, 1, 1.5),
-            (-2, 1, 0.5),
-            (-2, -2, 0.5),
-            (-1, -2, 1),
-            (1, -1, 1),
-        ]),
-        "6_2": knot_path("knot_sketches/6_2.png") * 2,
-        "6_3": knot_path("knot_sketches/6_3.png") * 2,
-        "7_1": knot_path("knot_sketches/7_1.png") * 2,
-        "7_2": knot_path("knot_sketches/7_2.png") * 2,    
-        "7_3": knot_path("knot_sketches/7_3.png") * 2,
-        "7_4": knot_path("knot_sketches/7_4.png") * 2,
-        "7_5": knot_path("knot_sketches/7_5.png") * 2,
-        "7_6": knot_path("knot_sketches/7_6.png") * 2,
-        "7_7": knot_path("knot_sketches/7_7.png") * 2,
-    }, **{ # from Arc Presentation on katlas.org (todo: this [:-4] is because I constructed them wrong)
+knots0 = { # from Arc Presentation on katlas.org (todo: this [:-4] is because I constructed them wrong)
+    **{
+        name_from_index(i): 2 * np.array(leq_seven)[:-4] for i, leq_seven in enumerate(leq_sevens)
+    }, **{
         f"8_{i}": 2 * np.array(eight)[:-4] for i, eight in enumerate(eights)
     }, **{
         f"9_{i}": 2 * np.array(nine)[:-4] for i, nine in enumerate(nines)
     }, **{
         f"10_{i}": 2 * np.array(ten)[:-4] for i, ten in enumerate(tens)
-    }
+    },
+    **legacy_knots0
 }
 
 rad = 1
@@ -236,7 +154,7 @@ def get_path(knot0, iters=500, dampiters=1, upscale=10):
         if i % 5 == 0:
             points_to_image(damped_points, f"iterations/{iters}_{i}.png")
 
-    damped_points = damped_points * upscale
+    damped_points = double_points(damped_points * upscale)
 
     save_points = [damped_points[0]]
 
@@ -247,8 +165,8 @@ def get_path(knot0, iters=500, dampiters=1, upscale=10):
     return save_points
 
 eights_paths = []
-for i in range(1, len(eights)):
-    myname = f"8_{i}"
+for i in range(len(leq_sevens)):
+    myname = name_from_index(i)
     upscale=10
     path = get_path(knots0[myname], upscale=upscale)
     eights_paths.append(path)
