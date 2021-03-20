@@ -27,10 +27,10 @@ def vertex_ring(p, n, r, k=10):
 
 def tube(path, r=1, k=10):
     vertex_rings = [
-        vertex_ring(path[i], path[i+1] - path[i], r, k)
+        vertex_ring(path[i], path[i+1] - path[i-1], r, k)
         for i in range(len(path) - 1)
     ] + [
-        vertex_ring(path[-1], path[0] - path[-1], r, k)    
+        vertex_ring(path[-1], path[0] - path[-2], r, k)    
     ]
     
     triangles = []

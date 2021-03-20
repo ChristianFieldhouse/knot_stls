@@ -23,11 +23,11 @@ knots0 = { # from Arc Presentation on katlas.org (todo: this [:-4] is because I 
     **{
         name_from_index(i): 2 * np.array(leq_seven)[:-4] for i, leq_seven in enumerate(leq_sevens)
     }, **{
-        f"8_{i}": 2 * np.array(eight)[:-4] for i, eight in enumerate(eights)
+        f"8_{i + 1}": 2 * np.array(eight)[:-4] for i, eight in enumerate(eights)
     }, **{
-        f"9_{i}": 2 * np.array(nine)[:-4] for i, nine in enumerate(nines)
+        f"9_{i + 1}": 2 * np.array(nine)[:-4] for i, nine in enumerate(nines)
     }, **{
-        f"10_{i}": 2 * np.array(ten)[:-4] for i, ten in enumerate(tens)
+        f"10_{i + 1}": 2 * np.array(ten)[:-4] for i, ten in enumerate(tens)
     },
     **legacy_knots0
 }
@@ -100,10 +100,11 @@ def forces(points, elasticity=0.5, repulsion=0.1, far=far, close = 0.1/subsample
 
 def double_points(points):
     new_points = [points[0]]
-    for point in points:
+    for point in points[1:]:
         q = new_points[-1]
-        new_points.append(((point[0] + q[0])/2, (point[1] + q[1])/2, (point[2] + q[2])/2))
+        new_points.append((point + q) / 2)
         new_points.append(point)
+    new_points.append((points[0] + points[-1]) / 2)
     return np.array(new_points)
 
 def points_to_image(points, file_name):
@@ -126,7 +127,7 @@ def points_to_image(points, file_name):
         ])
     Image.fromarray(im.astype("uint8")).save(file_name)
 
-def get_path(knot0, iters=500, dampiters=1, upscale=10):
+def get_path(knot0, iters=500, dampiters=50, upscale=10):
 
     points0 = np.concatenate(
         [[
@@ -141,33 +142,27 @@ def get_path(knot0, iters=500, dampiters=1, upscale=10):
     for i in range(iters):
         if i % print_step == 0:
             points_to_image(points, f"iterations/{i}.png")
-        print(i, len(points))
         f = forces(points)
+        print(f"{i} / {iters}  points: {len(points)}  size:", "{:.7f}".format(np.max(points) - np.min(points)) , f" forces: {np.round(np.mean(np.abs(f)), 7)}", end="\r")
         #print(f)
         points = cull_and_generate(points + f)
 
     damped_points = double_points(points)
 
     for i in range(dampiters):
-        f = forces(damped_points, justdamp=True)
-        points = cull_and_generate(damped_points + f)
-        if i % 5 == 0:
+        f = forces(damped_points, justdamp=True, elasticity=0.05)
+        damped_points = damped_points + f
+        #print("DAMP : ", np.max(damped_points) - np.min(damped_points))
+        if i % print_step == 0:
             points_to_image(damped_points, f"iterations/{iters}_{i}.png")
+    print()
+    return damped_points * upscale
 
-    damped_points = double_points(damped_points * upscale)
 
-    save_points = [damped_points[0]]
-
-    for p in damped_points:
-        if np.any(p != save_points[-1]):
-            save_points.append(p)
-    
-    return save_points
-
-eights_paths = []
-for i in range(len(leq_sevens)):
-    myname = name_from_index(i)
-    upscale=10
-    path = get_path(knots0[myname], upscale=upscale)
-    eights_paths.append(path)
-    save_sdl(tube(path, k=20, r=rad * upscale / 2), name=myname)
+if __name__ == "__main__":
+    for i in range(len(nines)):
+        myname = f"9_{i + 1}"
+        print(myname)
+        upscale=10
+        path = get_path(knots0[myname], upscale=upscale, iters=900, dampiters=10)
+        save_sdl(tube(path, k=20, r=rad * upscale / 2), name="stls/" + myname)
